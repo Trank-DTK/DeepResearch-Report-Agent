@@ -1,0 +1,105 @@
+# AGENTS.md — 项目上下文注入文件
+
+> 本文件是项目的持久记忆。任何 AI 助手在开始工作前都应先阅读本文件。
+> 每次确认一项关键决策后，必须同步更新本文件（特别是「已确认决策」与「待决策问题树」）。
+
+## 一、项目总览
+
+- **项目方向**：DeepResearch 式「长图文报告生成 Agent」——输入一个研究问题，输出一份带图、带引用来源的长报告。
+- **项目定位（三重目标）**：
+  1. 锻炼工程实践能力（用户工程能力几乎为 0，这是首要目标）；
+  2. 未来科研的「实验平台」（用户后续要在 DeepResearch Agent 方向做科研、发论文，本项目框架要设计成可复现论文、可替换模块的形态）；
+  3. 申请软件著作权 + 发布到 GitHub。
+- **工作目录**：`E:\项目\deepresearch-report-agent`（项目根目录；骨架与 docs/ 已建）
+
+## 二、用户画像（重要，影响所有技术选型）
+
+- 准大三计算机专业学生。
+- **强项**：Python。
+- **薄弱项**：前端（HTML/CSS/JS/TS/Vue 都学得很浅，且基本遗忘）；前后端连接（Ajax/Django/FastAPI 很浅）。
+- **AI Agent 背景**：了解 langchain、ReAct Agent、RAG、VLM、skill、MCP、harness，均为浅层了解。
+- **正在阅读的论文**：TVIR、DeepReporter 等 DeepResearch Agent 长图文报告生成相关论文（科研文献阅读阶段，尚未开始实验）。
+- 学习能力正常，但需要保姆级、可执行的指导。
+
+## 三、已确认决策
+
+| 编号 | 决策 | 结论 | 确认时间 |
+|---|---|---|---|
+| Q1 | 项目方向 | 选 A：DeepResearch 式长图文报告生成 Agent；以「为未来科研做实验平台」为隐性架构目标 | 已确认 |
+| Q2 | 软著时间 | 普通通道 3~4 个月拿证可接受，不加急；项目完成后立即提交，先拿受理通知书 | 已确认 |
+| Q3 | 持续记忆 | 在 `E:\项目\deepresearch-report-agent\AGENTS.md` 维护上下文注入文件，AI 助手每轮关键决策后更新 | 已确认 |
+| Q4 | v1.0 功能边界 | 核心闭环：问题输入→ReAct 规划→联网检索→证据整理→章节撰写（带引用标注）→图表生成→报告合成（Markdown+HTML）→Web 界面→配置与日志。**明确不做**：本地文档 RAG、多轮追问、用户系统、重前端、自动评测框架（v2.0 再做） | 已确认 |
+| Q4a | 图表生成范式 | 采用 Multimodal DeepResearcher (AAAI 2026) 的 **FDV 范式**：Find（从证据提取数据）→ Draw（matplotlib 绘图）→ Verify（校验图文一致性，错误则修正重画）。该论文开源，后续科研可参考 | 已确认 |
+| Q4b | LLM 双渠道 | 用户可选：①本地部署（Ollama / LM Studio）②在线 API Key。统一走 OpenAI 兼容接口层，两种渠道共享同一套适配器 | 已确认 |
+| Q4c | 检索工具可插拔 | 默认 Tavily（用户已注册，有免费额度），架构上做成可插拔检索器，备选 DuckDuckGo 等免费方案 | 已确认 |
+| Q5 | 报告形态 | 权威格式 Markdown（带引用标注、图表占位符）→ 转 HTML（内置 CSS 模板，图表 PNG 转 base64 内嵌）→ 浏览器打印 PDF。统一报告骨架：标题/研究概要/目录/各章(正文+引用+图表)/参考来源清单。**中文报告**。不直接生成 PDF | 已确认 |
+| Q6 | 检索与抓取 | 检索器：Tavily（默认，额度保护靠本地缓存）+ DuckDuckGo（免费兜底）。抓正文：httpx + trafilatura，降级链：trafilatura→beautifulsoup→搜索摘要。检索策略：每子问题 2~3 个改写查询词×前5条，≥3 条有效证据，不足则换词重搜或如实标注"证据不足" | 已确认 |
+| Q6a | 插件注册机制 | `src/providers/` 目录自动发现：抽象基类 + 注册装饰器，用户复制模板改 30 行即可接入新检索器；**同一约定复用于 LLM 提供者与抓取器**（三个扩展点一套机制），软著说明书可写"支持自定义扩展"卖点 | 已确认 |
+| Q7 | LLM 选型 | 统一 OpenAI 兼容接口：本地 Ollama/LM Studio（base_url 直连）+ 在线 DeepSeek（推荐默认，便宜中文强）等多家（用户已有多个 key）。8GB 显存 → 本地推荐 qwen3:8b。小模型输出加 JSON 容错重试。成本控制：调试用本地免费、token 预算上限、全程缓存 | 已确认 |
+| Q7a | FDV 视觉校验 | v1.0 内置双 Verifier（沿用插件机制）：TextVerifier（默认，纯文本对照校验，任何模型可用）+ **VisionVerifier（可选，真·VLM 看图校验）**。VisionVerifier 默认推荐 **GLM-5.3-Flash**（智谱 BigModel，免费/极低价多模态；OpenRouter 的 ox-alpha 即其匿名马甲，现身份已揭晓）。校验失败自动修正重画，上限 2~3 轮 | 已确认 |
+| Q8 | Agent 框架 | **v1.0 手写最小 Agent 内核，不用 LangChain/LangGraph**（理由：学习价值第一、软著原创性、框架 API 变动快）。形态：Planner 一次规划生成章节提纲 → 每子问题 JSON 动作循环（thought/action/args，search/fetch/extract_chart_data/draw_chart/verify/write_section/finalize）→ Synthesizer 汇总合成。JSON 解析失败自动重试 2 次，仍失败记警告继续。目录 `src/agent/`：core.py（循环状态机）/planner.py/tools.py/state.py，全接口化，日后可平滑迁移 LangGraph。用户曾手写 ReAct，有基础 | 已确认 |
+| Q9 | 前端形态 | **Streamlit**（纯 Python、零前端负担、进度流式展示利于软著截图、Markdown 渲染报告、内嵌 HTML 预览）。长任务用"后台线程跑 Agent + 界面轮询进度"模式。用户学过一点 Streamlit。FastAPI+Vue 留 v2.0 | 已确认 |
+| Q10 | 质量与评测 | v1.0 内置：①报告自检器（合成后自动跑：引用完整性、防幻觉第一道闸[正文 URL 必须存在于证据库]、图表一致性、结构完整性，产出自检报告显示于界面）②引用真实性校验（去重/格式/可选可达性抽查）。`examples/` 放 3 个典型问题 + `scripts/regression.py` 回归脚本。**不做** LLM-as-judge 自动评分（留给科研阶段，是创新切入点） | 已确认 |
+| Q11 | 名称与冻结 | **软件全称：智绘研报图文报告智能生成系统 V1.0**；GitHub 仓库名 `deepresearch-report-agent`（README 用中文全称）。冻结策略：第4周末 git tag v1.0 → 软著材料全部从该 tag 生成 → 之后 main 继续迭代。申请表：开发完成日期=v1.0 冻结日、首次发表日期=GitHub 公开日、著作权人=个人/独立开发 | 已确认 |
+| Q12 | 排期 | 28 天排期（详见 `docs/PLAN.md`）：W1 地基/LLM/检索/抓取 → W2 Agent 内核+纯文本报告 → W3 FDV+自检+GUI（红线：第3周内 GUI 可跑）→ W4 视觉校验+打磨+回归+软著材料+发布。**波动预案**：时间盒+每里程碑1天缓冲+硬上限35天+砍刀优先级（视觉校验→GUI打磨→样例减为2题，核心闭环永不砍）；卡壳2小时即求助 | 已确认 |
+| Q13 | 科研衔接 | 已定（详见 `docs/ARCHITECTURE.md` §6）：论文组件↔可替换模块映射表（planner/retrieval/core/FDV/verifier/checker/examples）；预留 judge.py 空接口与本地 RAG 检索器模板两个科研钩子；消融实验=换模块实现不改框架 | 已确认 |
+| Q14 | 运行环境 | 已定（详见 `docs/ARCHITECTURE.md` §7）：Windows 10/11 + Python 3.10+ + 联网；本地模型可选（8GB 显存可跑 qwen3:8b）；v1.0 不做打包，说明书按"源码+pip+streamlit 启动"描述；PyInstaller 留 v2.0 | 已确认 |
+
+## 四、硬性约束
+
+1. **周期 ≤ 1 个月**（从开工到可提交软著的 v1.0）。
+2. 项目后续发布到 GitHub。
+3. 必须申请软著（审核已变严，材料合规性要在开发阶段就设计进去）。
+4. 技术选型以 Python 为主，前端能薄则薄。
+
+## 五、软著合规计划（开发阶段就要满足）
+
+- **第 3 周前 GUI 必须能跑**（说明书必须带界面截图）。
+- **冻结 v1.0 登记版本**：申请材料与 v1.0 绑定，之后继续迭代不受影响。
+- 源代码只提交**自己写的核心代码**（本项目核心是 Python，天然合规），写注释。
+- 说明书截图必须与软件名称、实际功能一一对应。
+- 第 4 周产出软著材料包：源程序整理（前后各 30 页/每页 50 行）、带截图的说明书、申请表信息清单。
+- 常见驳回雷区（需全程规避）：框架/脚手架代码充数、代码与文档功能不对应、缺截图、名称不规范、版本号与日期矛盾。
+
+## 六、AI 助手（指导教师）工作规范
+
+1. 采用 grill-me 模式：**一次只问一个问题**，每个问题给出推荐答案及理由，与用户对齐后再进入下一问。
+2. 每项决策确认后，**立即更新本文件**的「已确认决策」和「待决策问题树」。
+3. 涉及政策、软著等时效性信息时，用 web_search 核实，不凭记忆断言。
+4. 指导风格：保姆级、可执行、给具体到文件/命令的步骤；鼓励用户亲手写代码，AI 负责设计、审查和答疑，不让用户沦为旁观者。
+5. 阶段产出的设计文档（如 PRD、架构图、排期表）也写入 `E:\项目` 下的文件，保持仓库可追溯。
+
+## 七、待决策问题树（按依赖顺序，逐个解决）
+
+- [x] **Q4 功能边界**：v1.0 到底做什么、不做什么（砍字诀）。✅ 已确认，含 FDV 图表范式、LLM 双渠道、检索可插拔（Q4a/Q4b/Q4c）。
+- [x] **Q5 报告形态**：输出什么样式的报告（Markdown/HTML/PDF？图文混排方式？图表类型？）。✅ 已确认：Markdown→HTML→打印PDF，中文报告。
+- [x] **Q6 数据/检索来源**：已定"联网检索+可插拔"。✅ 已确认：Tavily 默认+DDGS 兜底、trafilatura 抓正文+降级链、检索策略、额度缓存；Q6a 插件注册机制（providers/ 自动发现，LLM/检索器/抓取器三扩展点共用）。
+- [x] **Q7 LLM 选型**：已定"本地/在线双渠道"。✅ 已确认：OpenAI 兼容统一层；本地 qwen3:8b（8GB 显存）；在线默认 DeepSeek；Q7a：v1.0 内置双 Verifier，VisionVerifier 推荐 GLM-5.3-Flash（= OpenRouter ox-alpha）。
+- [x] **Q8 Agent 框架**：LangChain / LangGraph / 手写 ReAct 循环？✅ 已确认：手写最小内核（Planner→JSON动作循环→Synthesizer），接口化以便日后迁移 LangGraph。
+- [x] **Q9 前端形态**：Streamlit / Gradio / FastAPI+Vue？✅ 已确认：Streamlit。
+- [x] **Q10 质量与评测**：✅ 已确认：报告自检器 + 引用真实性校验 + 回归样例集；不做自动评分框架。
+- [x] **Q11 软著名称与版本策略**：✅ 已确认：「智绘研报图文报告智能生成系统 V1.0」+ 冻结策略（tag v1.0 → 材料从 tag 生成 → 继续迭代）。
+- [x] **Q12 排期表**：✅ 已确认：28 天排期 + 波动预案，固化于 `docs/PLAN.md`。
+- [x] **Q13 与科研的衔接**：✅ 已确认：模块边界↔论文组件映射，固化于 `docs/ARCHITECTURE.md` §6。
+- [x] **Q14 部署/运行环境**：✅ 已确认：本地源码运行、不打包，固化于 `docs/ARCHITECTURE.md` §7。
+
+## 八、开工指引（当前阶段）
+
+设计已全部冻结（Q1~Q14）。**当前阶段：D1 进行中（环境地基）**——用户已装好 Ollama/LM Studio；今日验收：git 首次提交、venv+依赖、.env 填 Tavily key、qwen3:8b 拉取。
+
+1. 用户执行 D1 任务卡（见 `docs/PLAN.md` 第 2 节）：git init、venv、装依赖、填 `.env`、验证 import；
+2. 用户把每日实际可投入时间告诉 AI 导师，必要时重排；
+3. 每个里程碑后复盘；关键决策继续写入本文件。
+
+## 九、更新日志
+
+- 2026-XX-XX：创建本文件，固化 Q1~Q3 决策与问题树。
+- 同日：确认 Q4 功能边界及 Q4a（FDV 范式）/Q4b（LLM 双渠道）/Q4c（检索可插拔）。
+- 同日：确认 Q5 报告形态（Markdown→HTML→打印PDF，中文）。
+- 同日：确认 Q6 检索方案与 Q6a 插件注册机制。
+- 同日：确认 Q7 LLM 选型与 Q7a（双 Verifier + GLM-5.3-Flash 视觉校验）。
+- 同日：确认 Q8 手写 Agent 内核（不用 LangChain/LangGraph）。
+- 同日：确认 Q9 前端形态（Streamlit）。
+- 同日：确认 Q10 质量自检方案（自检器+引用校验+回归样例集）。
+- 同日：确认 Q11 名称「智绘研报图文报告智能生成系统 V1.0」与冻结策略。
+- 同日：grill-me 收尾——确认 Q12 排期、Q13 科研衔接、Q14 运行环境；项目迁移至子目录 `deepresearch-report-agent/`，建骨架（.gitignore/.env.example/config.yaml/requirements.txt/README + docs/PRD.md + docs/ARCHITECTURE.md + docs/PLAN.md），设计冻结，待 D1 开工。

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 环境变量与密钥（绝不提交）
+.env
+
+# 运行时数据（缓存/输出/日志）
+data/
+
+# 软著材料（源程序导出等，不随仓库公开）
+soft_copyright/
+
+# IDE
+.idea/
+.vscode/
+*.swp
