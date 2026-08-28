@@ -90,6 +90,7 @@
 
 - ✅ D2~D3 验收通过：smoke 三用例全绿（chat / JSON / 剥壳容错）；必改项全部落实（rfind、f 前缀、四个 __init__.py、importlib.import_module、FileNotFoundError、fail-fast、logging）。遗留小项（不卡验收）：chat 返回 None 兜底、报错信息带环境变量名、smoke prompt 双引号 JSON。
 - 📋 D4 卡：SearchProvider 接口 + SearchCache（MD5 键、dataclass 序列化）+ cached_search 助手 + FakeProvider 零额度验收。D5 卡：TavilySearchProvider（httpx 直调 REST）+ DDGSSearchProvider + build_search_provider + smoke_search 联调（缓存命中验证）。
+- 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。
 - ⚠️ D1 遗留：git 因目录归属（Administrator 所有）报 dubious ownership，需用户在自己终端执行
@@ -112,3 +113,4 @@
 - D1：环境地基基本完成（conda 环境 ZHYB、依赖、.env、qwen3:8b）；确认"任务卡队列制"执行模式；git 归属问题待用户修复后补 commit；进入 D2~D3（LLM 提供者层）。
 - D2~D3：LLM 提供者层代码已交并完成首轮 review（3 必改 + 若干建议项）；确立"git 完全由用户自管"边界；任务卡后续将更细粒度。
 - D2~D3 验收通过（smoke 三用例全绿）；发放 D4~D5 检索层任务卡（拆为 D4 接口+缓存 / D5 双检索器联调两小卡）。
+- D4~D5 进行中：D4 缓存逻辑已通过；D5 排障中——定位 .env 变量名拼写问题（模板 bug，已修）、DDGS 国内网络超时（记录为已知问题）；用户待改名后重跑 Tavily。

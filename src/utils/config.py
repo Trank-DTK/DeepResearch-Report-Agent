@@ -1,12 +1,17 @@
 import os
 import yaml
 from pathlib import Path
+from dotenv import load_dotenv
 
 #获取项目根目录
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 def load_yaml_config() -> dict:
-  """加载项目config.yaml文件"""
+  """加载项目config.yaml文件以及.env文件"""
+  env_path = PROJECT_ROOT / ".env"
+  if env_path.exists():
+    load_dotenv(env_path)
+
   config_path = PROJECT_ROOT / "config.yaml"
   if not config_path.exists():
     raise FileNotFoundError(f"配置文件不存在：{config_path}")
@@ -28,3 +33,14 @@ def get_llm_config() -> dict:
     "timeout":llm_cfg.get("timeout",60.0),
   }
 
+def get_search_config() -> dict:
+  """转换为字典格式"""
+  full_config = load_yaml_config()
+  sc = full_config.get("search",{})
+  return {
+    "provider":sc.get("provider"),
+    "tavily_api_key_env": sc.get("tavily_api_key_env"),
+    "max_results": sc.get("max_results", 5),
+    "cache_dir": sc.get("cache_dir", "data/cache/search"),
+    "timeout": sc.get("timeout", 15.0)
+  }
