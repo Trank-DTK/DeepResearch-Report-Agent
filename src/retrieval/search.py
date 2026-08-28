@@ -11,6 +11,8 @@ class SearchResult:
 
 class SearchProvider:
   """检索器基类"""
+  name:str = ""
+
   def search(self,query:str,max_results:int = 5) -> list[SearchResult]:
     raise NotImplementedError  #子类必须实现search
 

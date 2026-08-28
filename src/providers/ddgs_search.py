@@ -4,6 +4,8 @@ from src.providers.registry import register
 
 @register("search","ddgs")
 class DDGSSearchProvider(SearchProvider):
+  name:str = "ddgs"
+
   def __init__(self,cfg:dict|None = None):
     pass
 

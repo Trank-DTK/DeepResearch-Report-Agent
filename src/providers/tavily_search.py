@@ -5,6 +5,8 @@ from src.providers.registry import register
 
 @register("search","tavily")
 class TavilySearchProvider(SearchProvider):
+  name:str = "tavily"
+
   def __init__(self,cfg:dict):
     env_name = cfg.get("tavily_api_key_env","")
     api_key = os.getenv(env_name) if env_name else None

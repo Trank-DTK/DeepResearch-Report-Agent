@@ -86,10 +86,10 @@
 
 ## 八、开工指引（当前阶段）
 
-设计已全部冻结（Q1~Q14）。**当前阶段：D4~D5 进行中（检索层，已拆两张小卡）**。
+设计已全部冻结（Q1~Q14）。**当前阶段：D6 进行中（Fetcher 三级降级链）**。
 
 - ✅ D2~D3 验收通过：smoke 三用例全绿（chat / JSON / 剥壳容错）；必改项全部落实（rfind、f 前缀、四个 __init__.py、importlib.import_module、FileNotFoundError、fail-fast、logging）。遗留小项（不卡验收）：chat 返回 None 兜底、报错信息带环境变量名、smoke prompt 双引号 JSON。
-- 📋 D4 卡：SearchProvider 接口 + SearchCache（MD5 键、dataclass 序列化）+ cached_search 助手 + FakeProvider 零额度验收。D5 卡：TavilySearchProvider（httpx 直调 REST）+ DDGSSearchProvider + build_search_provider + smoke_search 联调（缓存命中验证）。
+- ✅ D4~D5 **验收通过**：Tavily 真实调用 1.17s + 二次缓存命中；缓存键已纳入 `provider.name`（验证方式：DDGS 同 query 不再偷缓存、真出网并超时——超时为已知国内网络问题，Tavily 绝对主力，DDGS 仅兜底）。待确认：smoke 打印标题在用户终端是否乱码（疑为粘贴丢失）。当前进行 **D6：Fetcher 三级降级链**（trafilatura→bs4→空串，任何异常不外抛、logging.warning 记录降级）+ smoke_fetch（真实 URL 2 个 + 不可达 URL 1 个）。D6 后为 M1：search→fetch→证据 JSON 落盘的 CLI 串联 + 里程碑复盘。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。
@@ -113,4 +113,4 @@
 - D1：环境地基基本完成（conda 环境 ZHYB、依赖、.env、qwen3:8b）；确认"任务卡队列制"执行模式；git 归属问题待用户修复后补 commit；进入 D2~D3（LLM 提供者层）。
 - D2~D3：LLM 提供者层代码已交并完成首轮 review（3 必改 + 若干建议项）；确立"git 完全由用户自管"边界；任务卡后续将更细粒度。
 - D2~D3 验收通过（smoke 三用例全绿）；发放 D4~D5 检索层任务卡（拆为 D4 接口+缓存 / D5 双检索器联调两小卡）。
-- D4~D5 进行中：D4 缓存逻辑已通过；D5 排障中——定位 .env 变量名拼写问题（模板 bug，已修）、DDGS 国内网络超时（记录为已知问题）；用户待改名后重跑 Tavily。
+- D4~D5 联调验收：Tavily+缓存链路通过；发现缓存键未区分 provider 的隐蔽 bug（DDGS 假绿）→ 用户修复（缓存键加入 provider.name）后复测通过：DDGS 同 query 真出网超时（证明修复生效，超时为已知国内网络问题）；待确认终端标题显示；D6 进行中。
