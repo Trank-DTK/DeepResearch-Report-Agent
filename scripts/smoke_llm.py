@@ -12,7 +12,6 @@ load_dotenv(project_root / ".env")
 from src.utils.config import get_llm_config
 from src.providers.registry import discover,get
 
-
 def main():
   print("测试开始：")
   print("正在发现并注册providers:")
@@ -60,7 +59,6 @@ def main():
     print(f"解析成功！结果：{res3}")
   except Exception as e:
     print(f"用例3失败：{e}")
-
   print("\n测试完毕")
 
 if __name__=="__main__":
