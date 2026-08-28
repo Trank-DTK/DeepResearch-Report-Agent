@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zhihui-yanbao"
+version = "0.1.0"
+description = "智绘研报图文报告智能生成系统 V1.0"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
