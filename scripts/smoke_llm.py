@@ -52,7 +52,7 @@ def main():
     print(f"解析出的字典：{res2}")
     print(f"类型:{type(res2)}")
   except Exception as e:
-    print("用例2失败：{e}")
+    print(f"用例2失败：{e}")
 
   print("用例3：容错测试(先解释再输出JSON)")
   try:

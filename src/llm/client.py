@@ -1,4 +1,6 @@
 from openai import OpenAI
+import json
+import logging
 
 class LLMError(Exception):
   pass
@@ -22,14 +24,16 @@ class LLMClient:
   def chat_json(self,message:list[dict]) -> dict:
     msgs = message.copy()
     msgs.insert(0,{"role":"system","content":"只输出JSON，不要解释"})
+    last_error = None
+    content = ""
 
     for attempt in range(self.max_retries):
+      content = content or ""
       content = self.chat(msgs)
-      import json
 
       try:
         start = content.find("{")
-        end = content.find("}")
+        end = content.rfind("}")
         if start != -1 and end != -1 and start<end:
           json_str = content[start:end+1]
         else:
@@ -41,6 +45,7 @@ class LLMClient:
         last_error = e
         error_msg = f"你上次输出不是合法JSON，错误是{e.msg}，请重新只输出JSON"
         msgs.append({"role":"user","content":error_msg})
+        logging.warning(f"JSON 解析失败，第{attempt}次重试:{e}")
         
     raise LLMError(
       f"Failed to get valid JSON after {self.max_retries} attempts. "

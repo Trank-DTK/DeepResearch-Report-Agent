@@ -9,7 +9,7 @@ def load_yaml_config() -> dict:
   """加载项目config.yaml文件"""
   config_path = PROJECT_ROOT / "config.yaml"
   if not config_path.exists():
-    raise FileExistsError(f"配置文件不存在：{config_path}")
+    raise FileNotFoundError(f"配置文件不存在：{config_path}")
   with open(config_path,"r",encoding="utf-8") as f:
     config = yaml.safe_load(f)
   return config
@@ -23,5 +23,8 @@ def get_llm_config() -> dict:
     "model":llm_cfg.get("model"),
     "api_key_env":llm_cfg.get("api_key_env"),
     "temperature":llm_cfg.get("temperature",0.2),
-    "max_retries":llm_cfg.get("max_retries",3)
+    "max_retries":llm_cfg.get("max_retries",3),
+    "provider":llm_cfg.get("provider"),
+    "timeout":llm_cfg.get("timeout",60.0),
   }
+

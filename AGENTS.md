@@ -66,8 +66,9 @@
 1. 采用 grill-me 模式：**一次只问一个问题**，每个问题给出推荐答案及理由，与用户对齐后再进入下一问。
 2. 每项决策确认后，**立即更新本文件**的「已确认决策」和「待决策问题树」。
 3. 涉及政策、软著等时效性信息时，用 web_search 核实，不凭记忆断言。
-4. 指导风格：保姆级、可执行、给具体到文件/命令的步骤；**任务卡队列制（不打卡、不催进度，尊重用户弹性时间）**；鼓励用户亲手写代码，AI 负责设计、审查和答疑，不让用户沦为旁观者。
-5. 阶段产出的设计文档（如 PRD、架构图、排期表）也写入 `E:\项目` 下的文件，保持仓库可追溯。
+4. 指导风格：保姆级、可执行、给具体到文件/命令的步骤；**任务卡队列制（不打卡、不催进度，尊重用户弹性时间）**；用户编码需较多时间投入（自评），任务卡应切得更细、提示更足；鼓励用户亲手写代码，AI 负责设计、审查和答疑，不让用户沦为旁观者。
+5. **git 完全由用户自管**：AI 不代为执行、不检查、不催促用户的 git 操作（用户明确划定的边界）。
+6. 阶段产出的设计文档（如 PRD、架构图、排期表）也写入 `E:\项目` 下的文件，保持仓库可追溯。
 
 ## 七、待决策问题树（按依赖顺序，逐个解决）
 
@@ -85,7 +86,10 @@
 
 ## 八、开工指引（当前阶段）
 
-设计已全部冻结（Q1~Q14）。**当前阶段：D2~D3 进行中（LLM 提供者层）**。
+设计已全部冻结（Q1~Q14）。**当前阶段：D4~D5 进行中（检索层，已拆两张小卡）**。
+
+- ✅ D2~D3 验收通过：smoke 三用例全绿（chat / JSON / 剥壳容错）；必改项全部落实（rfind、f 前缀、四个 __init__.py、importlib.import_module、FileNotFoundError、fail-fast、logging）。遗留小项（不卡验收）：chat 返回 None 兜底、报错信息带环境变量名、smoke prompt 双引号 JSON。
+- 📋 D4 卡：SearchProvider 接口 + SearchCache（MD5 键、dataclass 序列化）+ cached_search 助手 + FakeProvider 零额度验收。D5 卡：TavilySearchProvider（httpx 直调 REST）+ DDGSSearchProvider + build_search_provider + smoke_search 联调（缓存命中验证）。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。
 - ⚠️ D1 遗留：git 因目录归属（Administrator 所有）报 dubious ownership，需用户在自己终端执行
@@ -106,3 +110,5 @@
 - 同日：确认 Q11 名称「智绘研报图文报告智能生成系统 V1.0」与冻结策略。
 - 同日：grill-me 收尾——确认 Q12 排期、Q13 科研衔接、Q14 运行环境；项目迁移至子目录 `deepresearch-report-agent/`，建骨架（.gitignore/.env.example/config.yaml/requirements.txt/README + docs/PRD.md + docs/ARCHITECTURE.md + docs/PLAN.md），设计冻结，待 D1 开工。
 - D1：环境地基基本完成（conda 环境 ZHYB、依赖、.env、qwen3:8b）；确认"任务卡队列制"执行模式；git 归属问题待用户修复后补 commit；进入 D2~D3（LLM 提供者层）。
+- D2~D3：LLM 提供者层代码已交并完成首轮 review（3 必改 + 若干建议项）；确立"git 完全由用户自管"边界；任务卡后续将更细粒度。
+- D2~D3 验收通过（smoke 三用例全绿）；发放 D4~D5 检索层任务卡（拆为 D4 接口+缓存 / D5 双检索器联调两小卡）。

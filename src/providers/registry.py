@@ -21,11 +21,7 @@ def discover():
     if file_path.name == "__init__.py":
       continue
     module_name = f"src.providers.{file_path.stem}"  #如src.providers.llm_openai
-    spec = importlib.util.spec_from_file_location(module_name,file_path)  #规格说明
-    if spec and spec.loader:
-      module = importlib.util.module_from_spec(spec)
-      module.__package__ = "src.providers"  #让相对导入能正确解析
-      spec.loader.exec_module(module)
+    importlib.import_module(module_name)
 
 
 def get(kind:str,name:str) -> Callable | None:

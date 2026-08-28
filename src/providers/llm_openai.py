@@ -6,8 +6,12 @@ from ..llm.client import LLMClient
 def build(cfg:dict) -> LLMClient:
   #提取API Key
   env_key_name = cfg.get("api_key_env","")
-  if env_key_name and os.getenv(env_key_name):
+  if env_key_name:
     api_key = os.getenv(env_key_name)
+    if not api_key:
+      raise ValueError(
+        "环境变量未设置或为空，请在.env文件中配置"
+      )
   else:
     api_key = cfg.get("api_key","ollama")
   
