@@ -86,11 +86,12 @@
 
 ## 八、开工指引（当前阶段）
 
-设计已全部冻结（Q1~Q14）。**当前阶段：D6 进行中（Fetcher 三级降级链）**。
+设计已全部冻结（Q1~Q14）。**当前阶段：D8 进行中（Planner 研究报告规划器）**。
 
 - ✅ D2~D3 验收通过：smoke 三用例全绿（chat / JSON / 剥壳容错）；必改项全部落实（rfind、f 前缀、四个 __init__.py、importlib.import_module、FileNotFoundError、fail-fast、logging）。遗留小项（不卡验收）：chat 返回 None 兜底、报错信息带环境变量名、smoke prompt 双引号 JSON。
 - ✅ D4~D5 **验收通过**：Tavily 真实调用 1.17s + 二次缓存命中；缓存键已纳入 `provider.name`（验证方式：DDGS 同 query 不再偷缓存、真出网并超时——超时为已知国内网络问题，Tavily 绝对主力，DDGS 仅兜底）。待确认：smoke 打印标题在用户终端是否乱码（疑为粘贴丢失）。当前进行 **D6：Fetcher 三级降级链**（trafilatura→bs4→空串，任何异常不外抛、logging.warning 记录降级）+ smoke_fetch（真实 URL 2 个 + 不可达 URL 1 个）。D6 后为 M1：search→fetch→证据 JSON 落盘的 CLI 串联 + 里程碑复盘。
-- ✅ D6 **验收通过**：fetch_page 三级降级完整（空①`!=200` ②`len(text)>100` 均答对）、smoke 三用例通过（可达×2 + 不可达优雅降级不崩）。概念回答正确（保护 Agent 管线不中断）+ 补充"空串+日志=信号机制"细节。小改进项（不卡验收）：logger 惰性格式化（%s 而非 f-string）、smoke 打印正文预览。**当前 M1 进行中**：state.py（Evidence dataclass + save_evidence 落盘）→ pipeline.py（chat_json 改写查询词[失败兜底为原主题]→ cached_search → fetch 降级 → URL 去重 → 落盘）→ scripts/m1_pipeline.py（CLI 串联）。验收：evidence_*.json ≥3 条非空证据、二次运行缓存加速；跑通后里程碑复盘。
+- ✅ D6 **验收通过**：fetch_page 三级降级完整（空①`!=200` ②`len(text)>100` 均答对）、smoke 三用例通过（可达×2 + 不可达优雅降级不崩）。概念回答正确（保护 Agent 管线不中断）+ 补充"空串+日志=信号机制"细节。小改进项（不卡验收）：logger 惰性格式化（%s 而非 f-string）、smoke 打印正文预览。
+- ✅ M1 **验收通过**（第 1 周完成）：主题"大模型推理加速"→ 14 条证据落盘（11 抓取成功 + 3 摘要兜底，平均 6042 字），降级链全程无崩溃；期间排雷：LLM 直构绕过 builder（应走 registry）、SearchProvider 直构抽象类、缺 discover/缓存、output_dir 传 str 应为 Path（雷#3）。**复盘结论**：①类型纪律是本周主要报错源（dict[] vs obj.attr、str vs Path、参数顺序）→ 对策：写前读签名、CLI 卡附签名清单 ②组装层比业务层易错 → CLI 卡给签名清单 ③新概念卡维持概念课+填空骨架。**当前 D8 进行中**：planner.py（PLANNER_PROMPT + OutlineSection dataclass + plan_outline[3~6 章、截断/兜底]）+ smoke_planner；D8 后为 core.py（JSON 动作循环，全项目核心）。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。
@@ -117,3 +118,4 @@
 - D4~D5 联调验收：Tavily+缓存链路通过；发现缓存键未区分 provider 的隐蔽 bug（DDGS 假绿）→ 用户修复（缓存键加入 provider.name）后复测通过：DDGS 同 query 真出网超时（证明修复生效，超时为已知国内网络问题）；待确认终端标题显示；D6 进行中。
 - D6 教学式推进：用户反馈 Fetcher 难度大（首次接触 HTML 解析/第三方库/网络异常）→ 已发放"概念课+填空骨架"教学版任务卡（函数主体基本给全，留 2 个小填空；smoke_fetch.py 由用户独立完成）；工作规范补充：新概念任务卡采用教学式（先讲概念→给骨架→留填空→独立验收脚本）。
 - D6 验收通过（降级链完整、smoke 三用例通过）；发放 M1 里程碑卡（state.py + pipeline.py + m1_pipeline.py，LLM 改写查询词 + 检索 + 抓取 + 证据落盘串联）；M1 后里程碑复盘。
+- M1 验收通过（14 条证据落盘，11 成功+3 兜底）；完成里程碑复盘（类型纪律/组装层易错/教学式卡维持）；发放 D8 Planner 卡；D8 后为 core.py 动作循环。

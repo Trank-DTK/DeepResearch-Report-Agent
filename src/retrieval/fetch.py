@@ -41,7 +41,7 @@ def fetch_page(url:str,timeout:float = 10.0,user_agent:str = "") -> str:
     return text
   
   #降级，返回空串
-  logger.warning("%s提取正文失败（可能是内容过短），返回空串",url)
+  logger.warning("%s提取正文失败（内容过短），返回空串",url)
   return ""
 
 
