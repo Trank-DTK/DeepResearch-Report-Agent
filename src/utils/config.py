@@ -44,3 +44,12 @@ def get_search_config() -> dict:
     "cache_dir": sc.get("cache_dir", "data/cache/search"),
     "timeout": sc.get("timeout", 15.0)
   }
+
+def get_fetcher_config() -> dict:
+  full_config = load_yaml_config()
+  fc = full_config.get("fetcher",{})
+  return {
+    "timeout":fc.get("timeout",10),
+    "user_agent":fc.get("user_agent"),
+    "max_concurrency":fc.get("max_concurrency",5)
+  }
