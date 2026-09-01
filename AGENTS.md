@@ -86,13 +86,14 @@
 
 ## 八、开工指引（当前阶段）
 
-设计已全部冻结（Q1~Q14）。**当前阶段：D9~D11 进行中（Agent 内核：JSON 动作循环）**。
+设计已全部冻结（Q1~Q14）。**当前阶段：D12~D13 进行中（报告合成 Synthesizer + M2 里程碑）**。
 
 - ✅ D2~D3 验收通过：smoke 三用例全绿（chat / JSON / 剥壳容错）；必改项全部落实（rfind、f 前缀、四个 __init__.py、importlib.import_module、FileNotFoundError、fail-fast、logging）。遗留小项（不卡验收）：chat 返回 None 兜底、报错信息带环境变量名、smoke prompt 双引号 JSON。
 - ✅ D4~D5 **验收通过**：Tavily 真实调用 1.17s + 二次缓存命中；缓存键已纳入 `provider.name`（验证方式：DDGS 同 query 不再偷缓存、真出网并超时——超时为已知国内网络问题，Tavily 绝对主力，DDGS 仅兜底）。待确认：smoke 打印标题在用户终端是否乱码（疑为粘贴丢失）。当前进行 **D6：Fetcher 三级降级链**（trafilatura→bs4→空串，任何异常不外抛、logging.warning 记录降级）+ smoke_fetch（真实 URL 2 个 + 不可达 URL 1 个）。D6 后为 M1：search→fetch→证据 JSON 落盘的 CLI 串联 + 里程碑复盘。
 - ✅ D6 **验收通过**：fetch_page 三级降级完整（空①`!=200` ②`len(text)>100` 均答对）、smoke 三用例通过（可达×2 + 不可达优雅降级不崩）。概念回答正确（保护 Agent 管线不中断）+ 补充"空串+日志=信号机制"细节。小改进项（不卡验收）：logger 惰性格式化（%s 而非 f-string）、smoke 打印正文预览。
 - ✅ M1 **验收通过**（第 1 周完成）：主题"大模型推理加速"→ 14 条证据落盘（11 抓取成功 + 3 摘要兜底，平均 6042 字），降级链全程无崩溃；期间排雷：LLM 直构绕过 builder（应走 registry）、SearchProvider 直构抽象类、缺 discover/缓存、output_dir 传 str 应为 Path（雷#3）。**复盘结论**：①类型纪律是本周主要报错源（dict[] vs obj.attr、str vs Path、参数顺序）→ 对策：写前读签名、CLI 卡附签名清单 ②组装层比业务层易错 → CLI 卡给签名清单 ③新概念卡维持概念课+填空骨架。
-- ✅ D8 **验收通过**：plan_outline 输出 6 章逻辑连贯提纲（硬件/压缩/算法/分布式/案例/未来），截断/兜底/字段过滤正确，smoke 组装规范。建议项（不卡验收）：LLM 章节缺 keywords 时 `OutlineSection(**s)` 抛 TypeError 会整提纲兜底 → 建议 `{**s, "keywords": s.get("keywords", [])}`。**当前 D9~D11 进行中**：Agent 内核——RunState/tools.py（工具注册表：search[带抓取与证据入库]/write_section/finalize）+ core.py（chat_json 动作循环、步数上限 8、未知动作防死循环、write_section 即章完成）；验收：单章跑通、正文带 [n] 引用标注、落盘。
+- ✅ D8 **验收通过**：plan_outline 输出 6 章逻辑连贯提纲（硬件/压缩/算法/分布式/案例/未来），截断/兜底/字段过滤正确，smoke 组装规范。建议项（不卡验收）：LLM 章节缺 keywords 时 `OutlineSection(**s)` 抛 TypeError 会整提纲兜底 → 建议 `{**s, "keywords": s.get("keywords", [])}`。
+- ✅ D9~D11 **验收通过**（Agent 内核）：单章循环 steps=2（一次 search → write_section），正文带 [1]~[4] 引用、内容确来自证据库（含具体数字）、降级链无崩溃；排雷：AgentContext 漏传 state（教训：必填字段不给默认值，错误要在源头爆炸）。**新决策**：引用编号按章节内证据编号管理，参考来源清单按章列出（全局编号留 v2.0）。**当前 D12~D13 进行中**：assemble_report（标题/LLM 研究概要[兜底第一章前200字]/目录/N 章正文/每章参考来源）+ save_report 落盘 data/outputs/report_*.md；M2 验收：完整报告 ≥2000 字、引用与各章清单对应、统计打印。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。

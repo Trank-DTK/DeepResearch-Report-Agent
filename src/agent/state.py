@@ -1,4 +1,4 @@
-from dataclasses import dataclass,asdict
+from dataclasses import dataclass,asdict,field
 import json
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +14,18 @@ class Evidence:
   provider:str = ""
   fetched_at:str = ""
   degraded:bool = False
+
+@dataclass
+class RunState:
+  topic:str = ""
+  outline:list = field(default_factory=list)  #list[OutlineSection] 使用field确保每次实例化都创建一个全新的空列表or空字典
+  current_section_id:int = 0
+  evidence_by_section:dict = field(default_factory=dict)  #{section_id:[Evidence]}
+  section_markdown:dict = field(default_factory=dict)  #{section_id:str}
+  steps_taken:int = 0
+  references:dict = field(default_factory=dict)  #{ref_id:{"title":str,"url":str}}
+
+
 
 
 def save_evidence(evidence_list:list[Evidence],output_dir:Path,topic:str) -> Path:

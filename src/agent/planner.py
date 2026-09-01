@@ -16,7 +16,7 @@ class OutlineSection:
   keywords: list[str]
 
 def plan_outline(llm_client,topic:str,min_sections:int=3,max_sections:int=6)->list[OutlineSection]:
-  """规划研究报告章节大纲规划"""
+  """研究报告章节大纲规划"""
   try:
     result = llm_client.chat_json([{"role":"system","content":PLANNER_PROMPT},{"role":"user","content":f"研究主题:{topic}"}])
     raw = result.get("sections",[])
