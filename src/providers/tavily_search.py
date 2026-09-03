@@ -1,7 +1,11 @@
 import httpx
 import os
+import logging
 from src.retrieval.search import SearchProvider,SearchResult
 from src.providers.registry import register
+
+logger = logging.getLogger(__name__)
+
 
 @register("search","tavily")
 class TavilySearchProvider(SearchProvider):
@@ -16,14 +20,18 @@ class TavilySearchProvider(SearchProvider):
     self.timeout = cfg.get("timeout",15.0)
 
   def search(self, query, max_results = 5) -> list[SearchResult]:
-    res = httpx.post(
-      "https://api.tavily.com/search",
-      json={
-        "api_key":self.api_key,"query":query,"max_results":max_results,"include_answer":False
-      },
-      timeout = self.timeout
-    )
-    res.raise_for_status()
+    try:
+      res = httpx.post(
+        "https://api.tavily.com/search",
+        json={
+          "api_key":self.api_key,"query":query,"max_results":max_results,"include_answer":False
+        },
+        timeout = self.timeout
+      )
+      res.raise_for_status()
+    except httpx.HTTPError as e:
+      logger.warning("Tavily搜索失败 %s:%s ，返回空结果",query,e)
+      return []
     return [SearchResult(url=r["url"],title=r["title"],snippet=r.get("content",""),provider="tavily") for r in res.json().get("results",[])]
   
     

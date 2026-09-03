@@ -93,7 +93,8 @@
 - ✅ D6 **验收通过**：fetch_page 三级降级完整（空①`!=200` ②`len(text)>100` 均答对）、smoke 三用例通过（可达×2 + 不可达优雅降级不崩）。概念回答正确（保护 Agent 管线不中断）+ 补充"空串+日志=信号机制"细节。小改进项（不卡验收）：logger 惰性格式化（%s 而非 f-string）、smoke 打印正文预览。
 - ✅ M1 **验收通过**（第 1 周完成）：主题"大模型推理加速"→ 14 条证据落盘（11 抓取成功 + 3 摘要兜底，平均 6042 字），降级链全程无崩溃；期间排雷：LLM 直构绕过 builder（应走 registry）、SearchProvider 直构抽象类、缺 discover/缓存、output_dir 传 str 应为 Path（雷#3）。**复盘结论**：①类型纪律是本周主要报错源（dict[] vs obj.attr、str vs Path、参数顺序）→ 对策：写前读签名、CLI 卡附签名清单 ②组装层比业务层易错 → CLI 卡给签名清单 ③新概念卡维持概念课+填空骨架。
 - ✅ D8 **验收通过**：plan_outline 输出 6 章逻辑连贯提纲（硬件/压缩/算法/分布式/案例/未来），截断/兜底/字段过滤正确，smoke 组装规范。建议项（不卡验收）：LLM 章节缺 keywords 时 `OutlineSection(**s)` 抛 TypeError 会整提纲兜底 → 建议 `{**s, "keywords": s.get("keywords", [])}`。
-- ✅ D9~D11 **验收通过**（Agent 内核）：单章循环 steps=2（一次 search → write_section），正文带 [1]~[4] 引用、内容确来自证据库（含具体数字）、降级链无崩溃；排雷：AgentContext 漏传 state（教训：必填字段不给默认值，错误要在源头爆炸）。**新决策**：引用编号按章节内证据编号管理，参考来源清单按章列出（全局编号留 v2.0）。**当前 D12~D13 进行中**：assemble_report（标题/LLM 研究概要[兜底第一章前200字]/目录/N 章正文/每章参考来源）+ save_report 落盘 data/outputs/report_*.md；M2 验收：完整报告 ≥2000 字、引用与各章清单对应、统计打印。
+- ✅ D9~D11 **验收通过**（Agent 内核）：单章循环 steps=2（一次 search → write_section），正文带 [1]~[4] 引用、内容确来自证据库（含具体数字）、降级链无崩溃；排雷：AgentContext 漏传 state（教训：必填字段不给默认值，错误要在源头爆炸）。**新决策**：引用编号按章节内证据编号管理，参考来源清单按章列出（全局编号留 v2.0）。
+- ✅ M2 **验收通过（D13b 收官）**：6 章 / 正文各章 398~582 字（≥400 规则生效）/ 总 6403 字 / 30 证据 / 385.5s 全程零崩溃；叠标题/[nX]/脏标题问题修复生效，用户确认"格式好多了"。用户新诉求（已工程化立项）：①抓取成功率低 → 根因 = zhihu/华为 403 反爬 + Google/YouTube/Medium 国内不可达（非代码缺陷），且 fetch 无缓存致重跑重复踩坑 → D13c 加 FetchCache（只缓存成功内容）②引用权威性 → D14 接 arXiv API（免费无 key REST+Atom XML），作为 extra_providers 附加检索源（插件机制落地，arXiv 结果标记置前）；配套：PLANNER_PROMPT 要求 keywords 附英文翻译、AGENT_SYSTEM_PROMPT 加权威来源优先级规则。W2 完成；之后进 W3（FDV 图表 + HTML 渲染 + 自检器 + GUI 红线）。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。

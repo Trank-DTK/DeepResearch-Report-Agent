@@ -21,7 +21,11 @@ def register_tool(name:str):
 def search_tool(args:dict,ctx) -> str:
   """搜索+抓取工具 证据保存到ctx.evidence_by_section[当前章]，返回给LLM的文本每条证据都带有[编号]前缀"""
   query = args["query"]
-  results = cached_search(ctx.search_provider,ctx.cache,query)
+  try:
+    results = cached_search(ctx.search_provider,ctx.cache,query)
+  except Exception as e:
+    logger.warning("搜索工具异常: %s",e)
+    return f"搜索失败：{e}。你可以换一个查询词重试，或直接write_section基于现有证据写作"
   evs = []
   for r in results[:5]: #只取前5条
     content = fetch_page(r.url,timeout=ctx.fetcher_cfg["timeout"],user_agent=ctx.fetcher_cfg["user_agent"])

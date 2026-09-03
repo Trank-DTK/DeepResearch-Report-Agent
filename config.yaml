@@ -12,6 +12,7 @@ llm:
   api_key_env: ""            # 本地渠道留空；在线渠道填环境变量名（如 DEEPSEEK_API_KEY）
   temperature: 0.2
   max_retries: 3
+  timeout: 180
 
 search:
   # provider 可选: tavily | ddgs

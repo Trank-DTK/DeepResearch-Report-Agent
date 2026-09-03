@@ -9,7 +9,13 @@ AGENT_SYSTEM_PROMPT = """你是深度研究报告的章节撰写专家。当前�
 1.search:参数{"query":"搜索查询词"}，搜索并抓取网页，证据会以[编号]列出
 2.write_section:参数{"markdown":"章节正文"}，必须基于证据撰写，引用标[n]（n=证据编号）
 3.finalize: 参数{}，结束本章
-每次只输出一个JSON：{"thought":"你的思考","action":"工具名","args":{...}}"""
+每次只输出一个JSON：{"thought":"你的思考","action":"工具名","args":{...}}
+引用规则（必须严格遵守）
+1.正文引用只允许 [1] 这样的数字编号，禁止 “证据1”、“[n1]” 等其他写法
+2.每个具体事实后必须紧跟引用
+3.正文开头禁止重复章节标题或研究主题，直接写内容
+4.正文内的小节标题用####，禁止使用#或##
+5.write_section前确保检索过足够证据，正文不少于400字"""
 
 @dataclass
 class AgentContext:
@@ -32,7 +38,11 @@ def run_section(ctx:AgentContext,section)->str:
   max_steps = 8
   for step in range(max_steps):
     ctx.state.steps_taken += 1
-    act = ctx.llm_client.chat_json(messages)
+    try:
+      act = ctx.llm_client.chat_json(messages)
+    except Exception as e:
+      logger.error("第%d章LLM调用失败：%s，本章终止",section.id,e)
+      return ctx.state.section_markdown.get(section.id,"") or "[本章生成失败：LLM服务异常]"
     action = act.get("action")
     args = act.get("args",{}) or {}
     if action not in TOOLS:

@@ -1,6 +1,10 @@
+import time
+import openai
 from openai import OpenAI
 import json
 import logging
+
+logger = logging.getLogger(__name__)
 
 class LLMError(Exception):
   pass
@@ -14,12 +18,20 @@ class LLMClient:
     self.max_retries = max_retries
 
   def chat(self,messages:list[dict]) -> str:
-    res = self._client.chat.completions.create(
-      model=self.model,
-      temperature=self.temperature,
-      messages=messages
-    )
-    return res.choices[0].message.content
+    last_err = None
+    for attempt in range(self.max_retries):
+      try:
+        res = self._client.chat.completions.create(
+          model=self.model,
+          temperature=self.temperature,
+          messages=messages
+        )
+        return res.choices[0].message.content
+      except openai.APIError as e:
+        last_err = e
+        logger.warning("LLM调用失败（第%d/%d次）:%s",attempt+1,self.max_retries,e)
+        time.sleep(min(2 ** attempt,8))  #退避
+    raise LLMError(f"LLM调用{self.max_retries}次后仍失败：{last_err}") from last_err
   
   def chat_json(self,message:list[dict]) -> dict:
     msgs = message.copy()
@@ -45,7 +57,7 @@ class LLMClient:
         last_error = e
         error_msg = f"你上次输出不是合法JSON，错误是{e.msg}，请重新只输出JSON"
         msgs.append({"role":"user","content":error_msg})
-        logging.warning(f"JSON 解析失败，第{attempt}次重试:{e}")
+        logger.warning(f"JSON 解析失败，第{attempt+1}次重试:{e}")
         
     raise LLMError(
       f"Failed to get valid JSON after {self.max_retries} attempts. "
