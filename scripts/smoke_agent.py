@@ -25,12 +25,14 @@ def main():
   cache = SearchCache(Path(search_cfg["cache_dir"]))
   outlineSections = plan_outline(llm_client,topic)
   state = RunState(topic=topic)
+  arxiv_p = get_registry("search","arxiv")(search_cfg)
   ctx = AgentContext(
     llm_client=llm_client,
     search_provider=search_provider,
     cache=cache,
     fetcher_cfg=fetcher_cfg,
-    state=state
+    state=state,
+    extra_providers=[arxiv_p]
   )
   section_md = run_section(ctx,outlineSections[0])
   print(section_md)

@@ -50,3 +50,10 @@ def cached_search(provider:SearchProvider,cache:SearchCache,query:str,max_result
   res = provider.search(query,max_results)
   cache.set(query,max_results,res,provider_name)
   return res
+
+def search_multi(primary:SearchProvider,extra:list[SearchProvider],cache,query:str,max_results:int=5) -> list[SearchResult]:
+  """主检索器+附加检索器（如arXiv）"""
+  results = []
+  for p in [*extra,primary]:
+    results += cached_search(p,cache,query,max_results)
+  return results

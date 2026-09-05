@@ -42,7 +42,8 @@ def get_search_config() -> dict:
     "tavily_api_key_env": sc.get("tavily_api_key_env"),
     "max_results": sc.get("max_results", 5),
     "cache_dir": sc.get("cache_dir", "data/cache/search"),
-    "timeout": sc.get("timeout", 15.0)
+    "timeout": sc.get("timeout", 15.0),
+    "extra_providers":sc.get("extra_providers",[])
   }
 
 def get_fetcher_config() -> dict:

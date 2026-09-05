@@ -9,8 +9,11 @@ from src.retrieval.search import build_search_provider
 from src.retrieval.cache import SearchCache
 from src.utils.config import get_llm_config,get_fetcher_config,get_search_config
 from src.providers.registry import discover,get as get_registry
+from src.retrieval.fetch import FetchCache
 
-
+import logging
+logging.basicConfig(level=logging.INFO,format="%(levelname)s %(name)s:%(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def main():
   topic = sys.argv[1] if len(sys.argv) > 1 else "大模型推理加速"
@@ -25,14 +28,18 @@ def main():
   llm_client = builder(llm_cfg)
   search_provider = build_search_provider(search_cfg)
   cache = SearchCache(Path(search_cfg["cache_dir"]))
+  fetch_cache = FetchCache(Path("data/cache/fetch"))
   outline = plan_outline(llm_client,topic)
   state = RunState(topic=topic,outline=outline)
+  extra_providers = [get_registry("search",name)(search_cfg) for name in search_cfg.get("extra_providers",[]) if get_registry("search",name)]
   ctx = AgentContext(
     llm_client=llm_client,
     search_provider=search_provider,
     cache=cache,
     fetcher_cfg=fetcher_cfg,
-    state=state
+    fetch_cache=fetch_cache,
+    state=state,
+    extra_providers=extra_providers
   )
   start = time.time()
   for i,section in enumerate(outline,1):

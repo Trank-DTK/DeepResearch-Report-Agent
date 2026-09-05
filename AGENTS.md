@@ -69,6 +69,7 @@
 4. 指导风格：保姆级、可执行、给具体到文件/命令的步骤；**任务卡队列制（不打卡、不催进度，尊重用户弹性时间）**；用户编码需较多时间投入（自评），任务卡应切得更细、提示更足；鼓励用户亲手写代码，AI 负责设计、审查和答疑，不让用户沦为旁观者。
 5. **git 完全由用户自管**：AI 不代为执行、不检查、不催促用户的 git 操作（用户明确划定的边界）。
 6. 阶段产出的设计文档（如 PRD、架构图、排期表）也写入 `E:\项目` 下的文件，保持仓库可追溯。
+7. **发修复/任务指令前必须先读用户当前代码**（用户明确要求，曾发生引用不存在字段 `ctx.search_cfg_max` 的失误）；涉及 ctx/对象字段时必须基于实际代码，禁止凭空造变量；修复建议给出精确行号锚点。
 
 ## 七、待决策问题树（按依赖顺序，逐个解决）
 
@@ -95,6 +96,9 @@
 - ✅ D8 **验收通过**：plan_outline 输出 6 章逻辑连贯提纲（硬件/压缩/算法/分布式/案例/未来），截断/兜底/字段过滤正确，smoke 组装规范。建议项（不卡验收）：LLM 章节缺 keywords 时 `OutlineSection(**s)` 抛 TypeError 会整提纲兜底 → 建议 `{**s, "keywords": s.get("keywords", [])}`。
 - ✅ D9~D11 **验收通过**（Agent 内核）：单章循环 steps=2（一次 search → write_section），正文带 [1]~[4] 引用、内容确来自证据库（含具体数字）、降级链无崩溃；排雷：AgentContext 漏传 state（教训：必填字段不给默认值，错误要在源头爆炸）。**新决策**：引用编号按章节内证据编号管理，参考来源清单按章列出（全局编号留 v2.0）。
 - ✅ M2 **验收通过（D13b 收官）**：6 章 / 正文各章 398~582 字（≥400 规则生效）/ 总 6403 字 / 30 证据 / 385.5s 全程零崩溃；叠标题/[nX]/脏标题问题修复生效，用户确认"格式好多了"。用户新诉求（已工程化立项）：①抓取成功率低 → 根因 = zhihu/华为 403 反爬 + Google/YouTube/Medium 国内不可达（非代码缺陷），且 fetch 无缓存致重跑重复踩坑 → D13c 加 FetchCache（只缓存成功内容）②引用权威性 → D14 接 arXiv API（免费无 key REST+Atom XML），作为 extra_providers 附加检索源（插件机制落地，arXiv 结果标记置前）；配套：PLANNER_PROMPT 要求 keywords 附英文翻译、AGENT_SYSTEM_PROMPT 加权威来源优先级规则。W2 完成；之后进 W3（FDV 图表 + HTML 渲染 + 自检器 + GUI 红线）。
+- ✅ **D13c/D14 验收通过**：FetchCache 落地（单元验证 4177 字抓取→命中秒回；INFO 日志全景可见）；**用户自主 pivot：arXiv 需科学上网不可用 → 新增 OpenAlex provider 为主力学术源**（api.openalex.org 国内可达、免费无 key、处理 abstract_inverted_index 倒排还原、按 cited_by_count 排序、DOI 优先），arxiv_search.py 保留备用；extra_providers=["openalex"] config 驱动。排雷 2 处：search_tool 的 evs.append 缩进错位致学术证据被静默丢弃（else 分支内）、results[:5] 切片饿死主检索器（学术源占满 5 个名额）→ 已修。**报告实测**：仅 1 篇论文进报告（中文查询词在 OpenAlex 无结果）。
+- ✅ **D14b 验收通过 / W2 收官**：keywords_en 生效（报告引用 6 篇权威论文：Lottery Ticket、剪枝系列、Lightweight DL 综述）；write_section 质量闸门排雷完成——闸门破坏"write_section 必然保存"的跨层假设致第 4 章 0 字 → core.py 改为"保存成功才终局、被拒回灌重试"（教训：层间成功/失败信号必须显式传递）。复测全绿：5 章 505/495/501/442/577 字、总 5784 字、50 证据、236s（缓存积累 604→236）。**W2 完整链路**：规划(中英) → 检索(web+学术 OpenAlex) → 抓取(降级+FetchCache) → 动作循环(上限/熔断/闸门/零字修复) → 合成 → 报告。
+- 📋 **D15 进行中（W3 开门卡）**：FDV 图表管线第一步——src/report/chart.py 渲染器（matplotlib Agg 后端 + 中文字体兜底 Microsoft YaHei/SimHei + bar/line/pie 白名单 + 坏数据拒绝返回可读错误）+ scripts/smoke_chart.py（3 类型 PNG + 中文不乱码 + 坏数据用例）；图存 data/charts/；**D16 预告**：draw_chart Agent 工具 + TextVerifier（verify.py）+ AGENT_SYSTEM_PROMPT 加工具说明与"图表数据必须来自证据"规则；md→HTML 的图路径/base64 由 D18 渲染卡统一解决。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。

@@ -17,7 +17,7 @@ def main():
   res = plan_outline(llm_client,topic)
   print(f"规划得到{len(res)}个章节大纲:")
   for s in res:
-    print(f"章节{s.id}: {s.title}, 问题: {s.question}, 关键词: {s.keywords}")
+    print(f"章节{s.id}: {s.title}, 问题: {s.question}, 关键词: {s.keywords}，关键词（英文）:{s.keywords_en}")
   print("规划章节大纲完成")
 
 

@@ -24,3 +24,4 @@ def build_search_provider(cfg:dict) -> SearchProvider:
   if not builder:
     raise ValueError(f"未找到搜索供应商'{provider_name}'，请确保该供应商已注册或已被调用")
   return builder(cfg)
+

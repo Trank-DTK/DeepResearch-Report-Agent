@@ -4,47 +4,48 @@
 # ============================================================
 
 llm:
-  # provider 可选: local_ollama | local_lmstudio | openai_compatible
+  #provider 可选: local_ollama | local_lmstudio | openai_compatible
   provider: openai_compatible
   model: qwen3:8b
-  # 本地 Ollama 默认地址；在线渠道改成对应 base_url
+  #本地 Ollama 默认地址；在线渠道改成对应 base_url
   base_url: http://localhost:11434/v1
-  api_key_env: ""            # 本地渠道留空；在线渠道填环境变量名（如 DEEPSEEK_API_KEY）
+  api_key_env: ""            #本地渠道留空；在线渠道填环境变量名（如 DEEPSEEK_API_KEY）
   temperature: 0.2
   max_retries: 3
   timeout: 180
 
 search:
-  # provider 可选: tavily | ddgs
+  #provider 可选: tavily | ddgs
   provider: tavily
   tavily_api_key_env: TAVILY_API_KEY
   max_results: 5
   cache_dir: data/cache/search
+  extra_providers: ["openalex"] #不要学术源可以换为[],也支持arxiv
 
 fetcher:
-  timeout: 10                # 抓取超时（秒）
+  timeout: 10                #抓取超时（秒）
   user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ZhihuiYanbao/1.0"
   max_concurrency: 5
 
 agent:
-  sections_min: 3            # 章节提纲数量范围
+  sections_min: 3            #章节提纲数量范围
   sections_max: 6
-  queries_per_section: 3     # 每个子问题生成的搜索查询词数量
+  queries_per_section: 3     #每个子问题生成的搜索查询词数量
   min_evidence_per_section: 3
-  max_steps_per_section: 8   # 每章 ReAct 循环步数上限
+  max_steps_per_section: 8   #每章 ReAct 循环步数上限
 
 chart:
-  verify_mode: text          # text | vision
+  verify_mode: text          #text | vision
   vision:
-    provider: glm            # 默认 GLM-5.3-Flash（BigModel，OpenAI 兼容）
+    provider: glm            #默认 GLM-5.3-Flash（BigModel，OpenAI 兼容）
     model: glm-5.3-flash
     base_url: https://open.bigmodel.cn/api/paas/v4
     api_key_env: GLM_API_KEY
-  max_verify_rounds: 3       # FDV 校验失败重画上限
+  max_verify_rounds: 3       #FDV 校验失败重画上限
 
 report:
   output_dir: data/outputs
-  min_words: 2000            # 报告最少字数（自检器检查项）
+  min_words: 2000            #报告最少字数（自检器检查项）
 
 logging:
   level: INFO

@@ -15,7 +15,8 @@ AGENT_SYSTEM_PROMPT = """你是深度研究报告的章节撰写专家。当前�
 2.每个具体事实后必须紧跟引用
 3.正文开头禁止重复章节标题或研究主题，直接写内容
 4.正文内的小节标题用####，禁止使用#或##
-5.write_section前确保检索过足够证据，正文不少于400字"""
+5.write_section前确保检索过足够证据，正文不少于400字
+6.优先引用权威来源（如学术论文、官方文档等）"""
 
 @dataclass
 class AgentContext:
@@ -23,7 +24,9 @@ class AgentContext:
   search_provider: object
   cache: object
   fetcher_cfg: dict
+  fetch_cache:object
   state: object
+  extra_providers:list = field(default_factory=list)
 
 def run_section(ctx:AgentContext,section)->str:
   """跑完一个章节，返回该章节的Markdown正文"""
@@ -51,8 +54,15 @@ def run_section(ctx:AgentContext,section)->str:
     if action == "write_section":
       #如果是写章节，直接调用工具并结束
       res = TOOLS[action](args,ctx)
-      logger.info("第%d章完成，写入%d字",section.id,len(ctx.state.section_markdown.get(section.id,"")))
-      return ctx.state.section_markdown.get(section.id,"")
+      saved = ctx.state.section_markdown.get(section.id,"")
+      if saved:
+        #保存成功
+        logger.info("第%d章完成，写入%d字",section.id,len(saved))
+        return saved
+      messages.append({"role":"assistant","content":f"我选择执行:write_section，因为:{act.get('thought','')}"})
+      messages.append({"role":"user", "content": f"工具结果:\n{res}"})
+      continue
+      
     
     #其他动作，调用工具并把结果作为下一轮的用户输入
     res = TOOLS[action](args,ctx)
