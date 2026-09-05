@@ -10,6 +10,7 @@ from src.retrieval.cache import SearchCache
 from src.utils.config import get_llm_config,get_fetcher_config,get_search_config,get_chart_config
 from src.providers.registry import discover,get as get_registry
 from src.retrieval.fetch import FetchCache
+from src.report.render import render_report
 
 import logging
 logging.basicConfig(level=logging.INFO,format="%(levelname)s %(name)s:%(message)s")
@@ -48,7 +49,10 @@ def main():
     md = run_section(ctx,section)
     print(f"第{i}/{len(outline)}章完成，正文{len(md)}字")
   report = assemble_report(state,llm_client=llm_client)
-  save_report(report,Path("data/outputs"),topic)
+  md_path = save_report(report,Path("data/outputs"),topic)
+  html_path = md_path.with_suffix(".html")
+  render_report(report,html_path)
+  print(f"HTML报告:{html_path}")
   elapsed = time.time() - start
   print(f"章节数:{len(outline)}")
   print(f"总字数:{len(report)}")
