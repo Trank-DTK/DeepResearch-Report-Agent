@@ -7,7 +7,7 @@ from src.agent.core import AgentContext,run_section
 from src.report.synthesizer import assemble_report,save_report
 from src.retrieval.search import build_search_provider
 from src.retrieval.cache import SearchCache
-from src.utils.config import get_llm_config,get_fetcher_config,get_search_config
+from src.utils.config import get_llm_config,get_fetcher_config,get_search_config,get_chart_config
 from src.providers.registry import discover,get as get_registry
 from src.retrieval.fetch import FetchCache
 
@@ -31,6 +31,7 @@ def main():
   fetch_cache = FetchCache(Path("data/cache/fetch"))
   outline = plan_outline(llm_client,topic)
   state = RunState(topic=topic,outline=outline)
+  chart_cfg = get_chart_config()
   extra_providers = [get_registry("search",name)(search_cfg) for name in search_cfg.get("extra_providers",[]) if get_registry("search",name)]
   ctx = AgentContext(
     llm_client=llm_client,
@@ -39,6 +40,7 @@ def main():
     fetcher_cfg=fetcher_cfg,
     fetch_cache=fetch_cache,
     state=state,
+    chart_cfg=chart_cfg,
     extra_providers=extra_providers
   )
   start = time.time()

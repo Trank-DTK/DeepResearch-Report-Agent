@@ -15,7 +15,7 @@ llm:
   timeout: 180
 
 search:
-  #provider 可选: tavily | ddgs
+  #provider 可选: tavily|ddgs
   provider: tavily
   tavily_api_key_env: TAVILY_API_KEY
   max_results: 5
@@ -32,16 +32,17 @@ agent:
   sections_max: 6
   queries_per_section: 3     #每个子问题生成的搜索查询词数量
   min_evidence_per_section: 3
-  max_steps_per_section: 8   #每章 ReAct 循环步数上限
+  max_steps_per_section: 8   #每章ReAct循环步数上限
 
 chart:
-  verify_mode: text          #text | vision
+  verify_mode: text          #text|vision
   vision:
-    provider: glm            #默认 GLM-5.3-Flash（BigModel，OpenAI 兼容）
+    provider: glm            #默认GLM-5.3-Flash（BigModel，OpenAI兼容）
     model: glm-5.3-flash
     base_url: https://open.bigmodel.cn/api/paas/v4
     api_key_env: GLM_API_KEY
-  max_verify_rounds: 3       #FDV 校验失败重画上限
+  max_verify_rounds: 3       #FDV校验失败重画上限
+  output_dir: data/chart
 
 report:
   output_dir: data/outputs

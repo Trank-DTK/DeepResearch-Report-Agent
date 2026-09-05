@@ -24,6 +24,7 @@ class RunState:
   section_markdown:dict = field(default_factory=dict)  #{section_id:str}
   steps_taken:int = 0
   references:dict = field(default_factory=dict)  #{ref_id:{"title":str,"url":str}}
+  chart:dict = field(default_factory=dict) #{section_id:[{"path","caption","chart_type","verified"}]}
 
 
 

@@ -54,3 +54,14 @@ def get_fetcher_config() -> dict:
     "user_agent":fc.get("user_agent"),
     "max_concurrency":fc.get("max_concurrency",5)
   }
+
+
+
+def get_chart_config() -> dict:
+  full_config = load_yaml_config()
+  cc = full_config.get("chart",{})
+  return {
+    "verify_mode":cc.get("verify_mode","text"),
+    "max_verify_rounds":cc.get("max_verify_rounds",3),
+    "output_dir":cc.get("output_dir","data/chart")
+  }

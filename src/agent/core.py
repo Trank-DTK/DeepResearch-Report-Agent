@@ -8,7 +8,9 @@ AGENT_SYSTEM_PROMPT = """你是深度研究报告的章节撰写专家。当前�
 你可以使用的工具：
 1.search:参数{"query":"搜索查询词"}，搜索并抓取网页，证据会以[编号]列出
 2.write_section:参数{"markdown":"章节正文"}，必须基于证据撰写，引用标[n]（n=证据编号）
-3.finalize: 参数{}，结束本章
+3.finalize:参数{}，结束本章
+4.draw_chart:参数{"chart_type":"bar|line|pie","title":"图标题","data":[{"label":"类别","value":数值}]},
+图表数据必须来自本章证据中的真实数字（可含单位/年份），每章最多2张图表，成功后把返回的图片行插入正文
 每次只输出一个JSON：{"thought":"你的思考","action":"工具名","args":{...}}
 引用规则（必须严格遵守）
 1.正文引用只允许 [1] 这样的数字编号，禁止 “证据1”、“[n1]” 等其他写法
@@ -26,6 +28,7 @@ class AgentContext:
   fetcher_cfg: dict
   fetch_cache:object
   state: object
+  chart_cfg:dict
   extra_providers:list = field(default_factory=list)
 
 def run_section(ctx:AgentContext,section)->str:
