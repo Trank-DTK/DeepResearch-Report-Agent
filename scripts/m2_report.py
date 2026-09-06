@@ -11,6 +11,7 @@ from src.utils.config import get_llm_config,get_fetcher_config,get_search_config
 from src.providers.registry import discover,get as get_registry
 from src.retrieval.fetch import FetchCache
 from src.report.render import render_report
+from src.report.checker import run_checks,format_check_report
 
 import logging
 logging.basicConfig(level=logging.INFO,format="%(levelname)s %(name)s:%(message)s")
@@ -51,6 +52,9 @@ def main():
   report = assemble_report(state,llm_client=llm_client)
   md_path = save_report(report,Path("data/outputs"),topic)
   html_path = md_path.with_suffix(".html")
+  checks = run_checks(state,min_words=2000)
+  print("质量自检：")
+  print(format_check_report(checks))
   render_report(report,html_path)
   print(f"HTML报告:{html_path}")
   elapsed = time.time() - start
