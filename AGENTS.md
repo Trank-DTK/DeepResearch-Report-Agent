@@ -70,6 +70,8 @@
 5. **git 完全由用户自管**：AI 不代为执行、不检查、不催促用户的 git 操作（用户明确划定的边界）。
 6. 阶段产出的设计文档（如 PRD、架构图、排期表）也写入 `E:\项目` 下的文件，保持仓库可追溯。
 7. **发修复/任务指令前必须先读用户当前代码**（用户明确要求，曾发生引用不存在字段 `ctx.search_cfg_max` 的失误）；涉及 ctx/对象字段时必须基于实际代码，禁止凭空造变量；修复建议给出精确行号锚点。
+8. **git 节点随文给命令流**（用户明确要求）：凡遇到需要 git 操作的节点（提交/推送/建库/tag 等），随文给出可直接复制的完整命令流程，由用户自行执行（遵守规范 5：AI 不代执行、不检查 git）。
+9. **GitHub 仓库状态**：已建 `deepresearch-report-agent` 并完成首次 push（remote=origin、分支 main）；可见性未明确（默认按 private 处理，D27 发布日需转 public——届时提醒用户确认并给出转换流程）。日常流程：add → commit（`feat:/fix:/docs:/chore:` 前缀）→ push。
 
 ## 七、待决策问题树（按依赖顺序，逐个解决）
 
@@ -99,7 +101,8 @@
 - ✅ **D13c/D14 验收通过**：FetchCache 落地（单元验证 4177 字抓取→命中秒回；INFO 日志全景可见）；**用户自主 pivot：arXiv 需科学上网不可用 → 新增 OpenAlex provider 为主力学术源**（api.openalex.org 国内可达、免费无 key、处理 abstract_inverted_index 倒排还原、按 cited_by_count 排序、DOI 优先），arxiv_search.py 保留备用；extra_providers=["openalex"] config 驱动。排雷 2 处：search_tool 的 evs.append 缩进错位致学术证据被静默丢弃（else 分支内）、results[:5] 切片饿死主检索器（学术源占满 5 个名额）→ 已修。**报告实测**：仅 1 篇论文进报告（中文查询词在 OpenAlex 无结果）。
 - ✅ **D14b 验收通过 / W2 收官**：keywords_en 生效（报告引用 6 篇权威论文：Lottery Ticket、剪枝系列、Lightweight DL 综述）；write_section 质量闸门排雷完成——闸门破坏"write_section 必然保存"的跨层假设致第 4 章 0 字 → core.py 改为"保存成功才终局、被拒回灌重试"（教训：层间成功/失败信号必须显式传递）。复测全绿：5 章 505/495/501/442/577 字、总 5784 字、50 证据、236s（缓存积累 604→236）。**W2 完整链路**：规划(中英) → 检索(web+学术 OpenAlex) → 抓取(降级+FetchCache) → 动作循环(上限/熔断/闸门/零字修复) → 合成 → 报告。
 - ✅ **D15/D16/D17 验收通过**：FDV 三件套落地（render_chart + draw_chart 工具 + TextVerifier，含 verify_mode 拼写与 err 详情两处修复）；md→HTML 渲染完成（CSS 中文模板 + 图片 base64 内嵌单文件自包含 + 缺失图容错），浏览器目测 OK；排障记录：webbrowser file:// 被 360 劫持 → 改用 os.startfile。
-- ✅ **D18 验收通过**：自检器 8 项体检全中（引用越界[5]/图表缺失/孤儿图/未过校验图/短章/总字数 584<2000 全部被对应级别抓到），断言全绿；checker=未来科研评测指标雏形。**当前 D19~D20（W3 收官，软著截图红线）**：Streamlit GUI——①先把 m2_report 组装逻辑抽成 src/agent/runner.py `run_full_report(topic)`（CLI 与 GUI 共用同一执行体）②src/ui/app.py：主题输入 + 后台线程跑 Agent + queue 日志 handler 轮询显示（st.rerun 模式）+ 完成后展示自检清单、HTML iframe 预览、md/html 下载③`streamlit run src/ui/app.py`；验收=GUI 端到端出图文报告并截图存档（软著说明书素材）。
+- ✅ **D18 验收通过**：自检器 8 项体检全中（引用越界[5]/图表缺失/孤儿图/未过校验图/短章/总字数 584<2000 全部被对应级别抓到），断言全绿；checker=未来科研评测指标雏形。
+- ✅ **D19~D20 GUI 基本打通（W3 收官中）**：runner.py 抽取完成（CLI/GUI 共用）；app.py 排雷实录：①QueueLogHandler 未调 super().__init__() → level 属性缺失炸日志链（继承 logging.Handler 必须 super）②root logger 默认 WARNING 吞 INFO → 需 setLevel(INFO) ③错误要存 session_state.error + st.stop() 钉住而非一闪而过 ④残余闪烁=旧脚本实例交错噪音，忽略。**关键发现：qwen3:8b 真实运行从不主动调用 draw_chart**（每章 search→write_section 两步收工；D16 桩测试只证明工具可用）→ **D21 立项：自动配图通道**——runner 在章节循环后调 auto_illustrate(state, llm_client, chart_cfg)：对无图章节用一次 chat_json 做 Find（need_chart/chart_type/title/data），程序 render_chart + verify_chart_text 后自动注入章末（不依赖 LLM 自觉）；配 AGENT_SYSTEM_PROMPT 提示规则作辅助；验收=GUI 报告 HTML 预览出现 ≥1 张自动图、自检无孤儿图。
 - 🔧 已排查：①`.env.example` 模板曾误拼 `TAVIY_API_KEY`（缺 L）→ 已修复为 `TAVILY_API_KEY`，用户需同步改 `.env` 行名；②DDGS 底层抓 Yahoo，国内直连易超时（已知网络问题），Tavily 为绝对主力，DDGS 仅兜底；可选方向：代理参数或自写 bing 检索器插件。
 
 - ✅ D1 基本完成：conda 环境 **ZHYB**（用户自命名，Python 3.11）、依赖装齐、`.env` 已填、qwen3:8b 已拉取。
