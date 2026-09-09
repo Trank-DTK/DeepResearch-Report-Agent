@@ -76,8 +76,13 @@ def assemble_report(state,llm_client=None)->str:
     else:
       logger.warning("第%d章正文缺失，写入占位",s.id)
       parts.append("（本章生成失败，证据不足或循环超限）")
-    parts.append("")
-    parts.append(build_reference_section(state,s,body))
+  parts.append("")
+  parts.append("")
+  refs = getattr(state,"references",[]) or []
+  if refs:
+    parts.append("## 参考文献")
+    for r in refs:
+      parts.append(f"- [{r['id']}]{r['title']} - {r['url']}")
     parts.append("")
   
   return "\n".join(parts)
@@ -90,3 +95,31 @@ def save_report(markdown:str,output_dir:Path,topic:str) -> Path:
   path.write_text(markdown,encoding="utf-8")
   logger.info("报告已保存: %s（%d字）",path,len(markdown))
   return path
+
+
+
+def consolidate_reference(state) -> int:
+  """全局引用重排"""
+  url_to_ref = {}
+  for section in state.outline:
+    evs = state.evidence_by_section.get(section.id,[])
+    local_to_global = {}
+    for i,e in enumerate(evs,1):
+      if e.url not in url_to_ref:
+        url_to_ref[e.url] = {
+          "id":len(url_to_ref)+1,
+          "title":clean_title(e.title,e.url),
+          "url":e.url
+        }
+      local_to_global[i] = url_to_ref[e.url]["id"]
+    body = state.section_markdown.get(section.id,"")
+    if not body:
+      continue
+    def _sub(m):
+      n = int(m.group(1))
+      return f"[{local_to_global.get(n,n)}]"
+    state.section_markdown[section.id] = re.sub(r"\[(\d+)\]",_sub,body)
+
+  state.references = list(url_to_ref.values())
+  logger.info("引用全局化完成，共%d条参考文献",len(state.references))
+  return len(state.references)

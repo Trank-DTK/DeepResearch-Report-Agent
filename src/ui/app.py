@@ -104,11 +104,15 @@ elif st.session_state.result:
   tab_md, tab_html = st.tabs(["Markdown","HTML 预览"])
   with tab_md:
     st.download_button("下载 Markdown",r["report"],file_name=r["md_path"].name,mime="text/markdown")
-    st.markdown(r["report"][:3000])
+    show_all = st.toggle("展开全文",value=False)
+    if show_all:
+      st.markdown(r["report"])
+    else:
+      st.markdown(r["report"][:2000]+"\n\n...(展开全文或下载即可查看完整报告)")
   with tab_html:
     html_text = r["html_path"].read_text(encoding="utf-8")
     st.download_button("下载 HTML",html_text,file_name=r["html_path"].name,mime="text/html")
-    st.components.v1.html(html_text, height=800, scrolling=True)
+    st.components.v1.html(html_text, height=1000, scrolling=True)
 elif st.session_state.running:
   time.sleep(1)
   st.rerun()

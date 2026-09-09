@@ -31,11 +31,12 @@ def run_checks(state,min_words:int=2000) -> list[CheckItem]:
       items.append(CheckItem("warn",f"第{sid}章：正文偏短({len(body)}字)"))
     #引用越界检查(防幻觉)
     cited = parse_citations(body)
-    out_of_range = sorted(n for n in cited if n<1 or n>len(evs))
+    ref_ids = {r["id"] for r in getattr(state,"references",[]) or []}
+    out_of_range = sorted(n for n in cited if n not in ref_ids)
     if out_of_range:
-      items.append(CheckItem("error",f"第{sid}章：引用越界{out_of_range}（本章证据数{len(evs)}）"))
+      items.append(CheckItem("error",f"第{sid}章：引用越界{out_of_range}（全文参考文献{len(ref_ids)}条）"))
     elif cited:
-      items.append(CheckItem("ok",f"第{sid}章：引用{sorted(cited)}均在本章证据范围内"))
+      items.append(CheckItem("ok",f"第{sid}章：引用{sorted(cited)}均在参考文献范围内"))
     
     #图表一致性
     charts = state.chart.get(sid,[])

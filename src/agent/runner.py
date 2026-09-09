@@ -4,7 +4,7 @@ from pathlib import Path
 from src.agent.state import RunState
 from src.agent.planner import plan_outline
 from src.agent.core import AgentContext, run_section
-from src.report.synthesizer import assemble_report, save_report
+from src.report.synthesizer import assemble_report, save_report,consolidate_reference
 from src.report.render import render_report
 from src.report.checker import run_checks, format_check_report
 from src.report.auto_chart import auto_illustrate
@@ -13,6 +13,7 @@ from src.retrieval.cache import SearchCache
 from src.retrieval.fetch import FetchCache
 from src.utils.config import get_llm_config, get_fetcher_config, get_search_config, get_chart_config
 from src.providers.registry import discover, get as get_registry
+
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ def run_full_report(topic:str) -> dict:
     logger.info(f"第{i}/{len(outline)}章完成，正文{len(md)}字")
   auto_made = auto_illustrate(state,llm_client,chart_cfg)
   logger.info("自动配图完成，共生成%d张",auto_made)
+  consolidate_reference(state)
   report = assemble_report(state,llm_client=llm_client)
   md_path = save_report(report,Path("data/outputs"),topic)
   html_path = md_path.with_suffix(".html")
