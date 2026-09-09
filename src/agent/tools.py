@@ -58,14 +58,14 @@ def search_tool(args:dict,ctx) -> str:
   #返回给LLM摘要，每条带编号+前300字
   lines = []
   for i,e in enumerate(existing,1):
-    lines.append(f"[{i}]{e.title}|{e.url}\n{e.content[:300]}")
+    lines.append(f"[{i}]{e.title}|{e.url}\n{e.content[:600]}")
   return f"本章已有{len(existing)}条证据:\n" + "\n".join(lines)
 
 @register_tool("write_section")
 def write_section_tool(args:dict,ctx) -> str:
   markdown = args.get("markdown","").strip()
-  if len(markdown) < 300:
-    return f"正文过短({len(markdown)}字),请扩写到至少300字（包含更多证据细节与引用）后重新write_section"
+  if len(markdown) < 400:
+    return f"正文过短({len(markdown)}字),请扩写到至少400字（建议分3~5个####小节，每节至少包含具体事实与引用）后重新write_section"
   if not markdown:
     return "错误:markdown为空，请重新输出"
   ctx.state.section_markdown[ctx.state.current_section_id] = markdown
