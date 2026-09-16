@@ -59,7 +59,7 @@ def auto_illustrate(state,llm_client,chart_cfg:dict) -> int:
 
     posix = out_path.as_posix()
     state.section_markdown[sid] = body.rstrip() + f"\n\n![{res.get('title','数据图')}]({posix})\n"
-    state.chart.setdefault(sid,[]).append({"path":posix,"caption":res.get("title", ""),"chart_type":res.get("chart_type","bar"),"verified":True,"auto":True})
+    state.chart.setdefault(sid,[]).append({"path":posix,"caption":res.get("title", ""),"chart_type":res.get("chart_type","bar"),"verified":verdict.get("consistent",True),"auto":True})
 
     logger.info("第%d章自动配图成功:%s", sid,posix)
     made+=1
