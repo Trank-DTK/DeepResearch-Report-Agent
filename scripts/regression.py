@@ -1,6 +1,5 @@
 """回归脚本，跑examples/questions.json中的全部题目并记录stats
-python scripts/regressions.py --limit 1  可以限制跑问题的数量
-"""
+--limit 1  可以限制跑问题的数量"""
 import argparse
 import json
 import logging
@@ -47,7 +46,7 @@ def main():
       print(f"{row['topic'][:30]}...  ERROR:{row['error'][:80]}")
     else:
       print(f"{row['topic'][:30]}...  {row['sections']}章"
-            f"{row['chars']}字 自检{row['ok']}✓/{row['warn']}⚠/{row['err']}✗"
+            f"{row['chars']}字 自检{row['ok']} pass/{row['warn']} warning/{row['err']} error"
             f"{row['elapsed']}s -> {row['md']}")
   stats_path = OUT_DIR / "regression_stats.json"
   stats_path.write_text(json.dumps(rows,ensure_ascii=False,indent=2),encoding="utf-8")

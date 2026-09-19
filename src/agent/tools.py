@@ -4,7 +4,7 @@ from datetime import datetime
 from src.retrieval.cache import search_multi,cached_search
 from src.retrieval.fetch import cached_fetch
 from .state import Evidence
-from src.report.chart import render_chart
+from src.report.chart import render_chart,pick_chart_type
 from src.report.verify import verify_chart_text
 
 logger = logging.getLogger(__name__)
@@ -79,25 +79,38 @@ def finalize_tool(args:dict,ctx) -> str:
 @register_tool("draw_chart")
 def draw_chart_tool(args:dict,ctx) -> str:
   """画图+检验"""
-  chart_type = args.get("chart_type","")
   title = str(args.get("title","")).strip() or "未命名图表"
   data = args.get("data") or []
   sid = ctx.state.current_section_id
-
   cur = ctx.state.chart.get(sid,[])
   if len(cur) >= 2:
     return "本章已有2张图，达到上限。请在正文中引用已有图表，不要再draw_chart"
 
+  #图型决策：统计全篇已用类型 → 按数据形态择优（失败则沿用模型给的类型）
+  chart_type = args.get("chart_type","bar")
+  try:
+    labels = [str(d.get("label","")) for d in data]
+    values = [float(d.get("value")) for d in data]
+    used = {}
+    for charts in ctx.state.chart.values():
+      for c in charts:
+        t = c.get("chart_type","")
+        used[t] = used.get(t,0) + 1
+    chart_type = pick_chart_type(labels,values,used)
+    logger.info("第%s章图型决策：%s（全篇已用 %s）",sid,chart_type,used)
+  except (TypeError,ValueError):
+    pass
+
   n = len(cur) + 1
   out_path = Path(ctx.chart_cfg["output_dir"]) / f"s{sid}_f{n}.png"
-  err = render_chart(chart_type,title,data,out_path)
+  err = render_chart(chart_type,title,data,out_path,palette_idx=n - 1)  #配色随图序变化
   if err:
     return f"绘图失败:{err}。请修正data后重试draw_chart"
   verdict = {"consistent":True,"issues":[],"suggestion":""}
   if ctx.chart_cfg.get("verify_mode","text") == "text" and ctx.llm_client:
     verdict = verify_chart_text(ctx.llm_client,chart_type,title,data)
   ctx.state.chart.setdefault(sid,[]).append(
-    {"path":str(out_path),"caption":title,"chart_type":chart_type,"verified":verdict["consistent"]}
+    {"path":out_path.as_posix(),"caption":title,"chart_type":chart_type,"verified":verdict["consistent"]}
   )
   if not verdict["consistent"]:
     issues = ";".join(verdict.get("issues",[])) or verdict.get("suggestion","数据存疑")

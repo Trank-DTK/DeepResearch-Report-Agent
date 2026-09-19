@@ -72,6 +72,10 @@ def assemble_report(state,llm_client=None)->str:
     body = state.section_markdown.get(s.id,"")
     if body:
       body = strip_leading_headings(body)
+      body_posix = body.replace("\\","/")
+      for c in state.chart.get(s.id,[]):
+        if c["path"].replace("\\","/") not in body_posix:
+          body = body.rstrip() + f"\n\n![{c['caption']}]({c['path'].replace(chr(92),'/')})\n"
       parts.append(body)
     else:
       logger.warning("第%d章正文缺失，写入占位",s.id)

@@ -60,6 +60,11 @@
 - 说明书截图必须与软件名称、实际功能一一对应。
 - 第 4 周产出软著材料包：源程序整理（前后各 30 页/每页 50 行）、带截图的说明书、申请表信息清单。
 - 常见驳回雷区（需全程规避）：框架/脚手架代码充数、代码与文档功能不对应、缺截图、名称不规范、版本号与日期矛盾。
+- **源程序排版流程（Word，参数已实测，改代码后重出材料照抄）**：① `python scripts/export_source.py` 生成 `soft_copyright/源代码_全部.txt`（**已验收：2274 行 / 46 页 / 44 文件，<60 页故全部提交**；脚本自身经 EXCLUDE 排除，导出为 UTF-8 **带 BOM** 防 Word 乱码）② **用 Word「文件→打开」读入 txt**（不要双击、不要剪贴板粘贴；弹编码框选「其他编码→UTF-8」）③ Ctrl+A 统一格式：字体 Consolas（中文回退宋体）**小五 9pt**、行距**固定值 12 磅**、段前段后 0、取消"如果定义了文档网格，则对齐网格"④ 页面设置：上下 1.5cm、左右 2cm、页眉页脚距边界 1cm ⑤ 页眉 `智绘研报图文报告智能生成系统 V1.0`、页脚居中页码 ⑥ 验收：布局→行号→每页重新编号，**第 1 页末行号 ≥50**、总页数 ≤47 ⑦ 另存 .docx + 导出 PDF。**注意**：不要插入分页符/页码标记文本（会白占行导致页数翻倍）；WPS 打开可能误判编码，材料统一用 Microsoft Word。
+- ✅ **源程序材料完工（D25-①）**：`soft_copyright\源代码_全部.txt/.docx/.pdf` 三件套齐全（Word 排版实测 **40 页 / 第 1 页末行号 60**，两项均超软著下限：每页≥50 行、总页数 <60 故全部提交）；排版参数见上条。
+- ⚠️ **材料重复存放风险（待用户清理）**：`deepresearch-report-agent\soft_copyright\` 与 `E:\项目\aaa\soft_copyright\` 各有一份（后者含旧版 `源代码_全部0.txt`）；已建议以项目内目录为准、删除另一份，避免提交拿错版本。另：txt 被 Word 打开时会产生 `~$` 锁文件，导致脚本写入 PermissionError → 覆盖前先关闭 Word。
+- 📋 **D25 剩余步骤（顺序固定，勿跳步）**：② 切 DeepSeek 跑一轮成品演示 → 截 5 张图存 `soft_copyright\截图\`（01 主界面 / 02 运行中日志 / 03 完成与自检 / 04 报告预览含图 / 05 下载与参考文献），演示后 config 三行改回本地 Ollama；③ 用户写 `soft_copyright\说明书.md`（六节：软件概述/运行环境/安装启动/功能操作说明[插 5 图]/技术特点/版本说明）→ AI 逐条对代码核一致性；④ 软著平台提交（全称「智绘研报图文报告智能生成系统 V1.0」、版本 V1.0、开发完成日期=v1.0 冻结日、首次发表日期暂留空后定）+ 代码 git 提交与 tag v1.0。
+- 🎨 **图表增强（待用户实施，代码已由 AI 验证可用）**：①**根因**：报告里 7 张图全走 Agent 的 `draw_chart`（`s*_f*.png`），该工具无任何图型约束 → 全柱状图；`auto_chart`（`s*_auto.png`）那条路径的 prompt 改动覆盖不到它。②**方案**：把"按数据形态选图型"做成 `chart.py` 的模块级函数 `pick_chart_type(labels, values, used)`（时间特征→line、加总≈100 或占比语义→pie、其余→bar/barh；**同类型全篇≤2 张**），由 `tools.draw_chart_tool` 与 `auto_chart.auto_illustrate` **两处共同调用**（不再依赖模型自觉）。③**样式升级**：三套循环配色、柱顶数值标注 `bar_label`、折线面积填充 + 数值 x 轴、环形饼图 + 右侧图例、新增 `barh` 水平条形（长标签友好）、`tight_layout` 替代 `bbox_inches="tight"`。④**验证证据**：桩测 4 图型渲染成功（39~45KB）+ 坏数据拒绝 + 4 条决策逻辑全过；样张在 `data/chart/verify_{bar,barh,line,pie}.png`，验证脚本 `data/_verify_chart_v2.py`。⑤已修 bug：同一张图被引用两次（`draw_chart_tool` 存 `str(path)` 反斜杠 vs 正文正斜杠，导致装配补图判断失配）→ 统一 `as_posix()`。
 
 ## 六、AI 助手（指导教师）工作规范
 
@@ -72,6 +77,12 @@
 7. **发修复/任务指令前必须先读用户当前代码**（用户明确要求，曾发生引用不存在字段 `ctx.search_cfg_max` 的失误）；涉及 ctx/对象字段时必须基于实际代码，禁止凭空造变量；修复建议给出精确行号锚点。
 8. **git 节点随文给命令流**（用户明确要求）：凡遇到需要 git 操作的节点（提交/推送/建库/tag 等），随文给出可直接复制的完整命令流程，由用户自行执行（遵守规范 5：AI 不代执行、不检查 git）。
 9. **GitHub 仓库状态**：已建 `deepresearch-report-agent` 并完成首次 push（remote=origin、分支 main）；可见性未明确（默认按 private 处理，D27 发布日需转 public——届时提醒用户确认并给出转换流程）。日常流程：add → commit（`feat:/fix:/docs:/chore:` 前缀）→ push。
+10. **代码改动一律由用户执行（用户明确要求，最新）**：AI 只输出"改哪个文件 / 哪几行 / 改成什么 / 为什么"的方案与 diff 说明，不再直接编辑用户的代码文件；AI 仍可维护 AGENTS.md 等文档与临时验证脚本（后者放 `data/`，已 gitignore）。
+- ⚠️ **AI 已直接改动过的文件（历史记录，供用户核对/回退）**：
+  - `src/agent/core.py`（用户当次授权）：修复 `TOOLS[action][args,ctx]` → `TOOLS[action](args, ctx)`；去掉 write_section 分支的二次工具调用；未知动作改为"回灌纠错+连续3次才放弃"；工具调用包 try/except。已用桩测试 4/4 验证通过。
+  - `src/report/auto_chart.py`（用户当次授权，**该次改动未经验证**）：FIND_PROMPT 增加图型选择规则（占比→pie、趋势→line、并列对比→bar、优先用未出现过的类型）；`auto_illustrate` 内新增 `used` 统计并在 user 消息注入"本篇已使用的图表类型统计"。用户如需回退：删除 FIND_PROMPT 中"图型选择规则"三行与 user 消息里的 used 行即可。
+  - `scripts/export_source.py`（用户要求创建）：软著源程序导出工具（EXCLUDE 排除自身、utf-8-sig 带 BOM）。
+  - `data/_verify_core.py`（AI 临时验证脚本，可删）。
 
 ## 七、待决策问题树（按依赖顺序，逐个解决）
 
