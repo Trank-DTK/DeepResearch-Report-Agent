@@ -1,6 +1,6 @@
 # 智绘研报图文报告智能生成系统 V1.0
 
-> DeepResearch 式长图文报告生成 Agent：输入一个研究问题，系统自动完成规划、多源联网检索、证据整理、分章撰写、图表生成与校验、报告合成，最终输出一份带图表与引用来源的图文研究报告（Markdown / HTML / 浏览器打印 PDF）。
+> DeepResearch 式长图文报告生成 Agent：输入一个研究问题，系统自动完成规划、多源联网检索、证据整理、分章撰写、图表生成与校验、报告合成，最终输出一份带图表与引用来源的图文研究报告（Markdown / HTML）。
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab)
 ![UI](https://img.shields.io/badge/UI-Streamlit-ff4b4b)
