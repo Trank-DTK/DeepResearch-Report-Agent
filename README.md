@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab)
 ![UI](https://img.shields.io/badge/UI-Streamlit-ff4b4b)
 ![LLM](https://img.shields.io/badge/LLM-OpenAI%20%E5%85%BC%E5%AE%B9%20%7C%20Ollama-4c72b0)
-![Source](https://img.shields.io/badge/Source-2274%20%E8%A1%8C%20%2F%2044%20%E6%96%87%E4%BB%B6-55a868)
+![Source](https://img.shields.io/badge/Source-2330%20%E8%A1%8C%20%2F%2044%20%E6%96%87%E4%BB%B6-55a868)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---

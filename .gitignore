@@ -11,8 +11,8 @@ venv/
 #运行时数据（缓存/输出/日志）
 data/
 examples/outputs/
-
 soft_copyright/
+AGENTS.md
 
 #IDE
 .idea/
